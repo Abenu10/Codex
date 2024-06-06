@@ -19,6 +19,7 @@ const openai = new OpenAI({
 const app = express();
 app.use(cors());
 app.use(express.json());
+const conversations = {}; 
 
 app.get('/', async (req, res) => {
   res.status(200).send({
@@ -28,16 +29,17 @@ app.get('/', async (req, res) => {
 
 app.post('/', async (req, res) => {
   try {
-    // const requestBody = {
-    //   messages: [{role: 'user', content: prompt}],
-    //   model: 'meta/llama3-70b-instruct',
-    //   max_tokens: 1024,
-    //   stream: true,
-    // };
-    const {prompt} = req.body;
+       const { prompt, sessionId } = req.body;
+
+if (!conversations[sessionId]) {
+      conversations[sessionId] = [];
+    }
+
+    conversations[sessionId].push({ role: 'user', content: prompt })
+    
     const completion = await openai.chat.completions.create({
       model: 'llama3-70b-8192',
-      messages: [{role: 'user', content: prompt}],
+      messages: conversations[sessionId],
       temperature: 0.7,
       max_tokens: 1024,
       stream: true,
@@ -47,6 +49,8 @@ app.post('/', async (req, res) => {
     for await (const chunk of completion) {
       response += chunk.choices[0]?.delta?.content || '';
     }
+
+    conversations[sessionId].push({ role: 'assistant', content: response });
 
     console.log('Response:', response); // Log the response
 
