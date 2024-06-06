@@ -12,7 +12,7 @@ const port = 5000;
 // });
 
 const openai = new OpenAI({
-  apiKey: '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',
+  apiKey: process.env.apiKey,
   baseURL: 'https://api.groq.com/openai/v1',
 });
 
